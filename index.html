@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="丝链智盾——面向中国—东盟跨境订单的AI单证审核与履约风险决策平台">
+  <meta name="theme-color" content="#07131f">
+  <title>丝链智盾 · 跨境供应链风险决策平台</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307131f'/%3E%3Cpath d='M15 18h22l12 14-12 14H15l12-14z' fill='none' stroke='%2325d6c9' stroke-width='5' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23ffb547'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="返回工作台">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>丝链智盾</strong><small>SilkChain Guard</small></span>
+      </a>
+      <nav class="view-nav" aria-label="主要视图">
+        <button class="nav-item active" data-view="workspace">运营工作台</button>
+        <button class="nav-item" data-view="matrix">风险矩阵</button>
+        <button class="nav-item" data-view="security">安全中心</button>
+      </nav>
+      <div class="top-actions">
+        <span class="live-pill"><i></i> 引擎在线</span>
+        <button class="icon-button" id="exportBtn" aria-label="导出审核报告" title="导出审核报告">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg>
+        </button>
+        <div class="avatar" aria-label="当前用户：运营审核员">运</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="view active" id="workspaceView">
+        <div class="page-intro">
+          <div>
+            <p class="eyebrow">中国—东盟跨境订单 · 运营控制塔</p>
+            <h1>把单证异常，变成可执行的供应链决策</h1>
+          </div>
+          <div class="intro-meta">
+            <span>任务 <b id="taskId">SC-2026-0921</b></span>
+            <span>航线 <b>深圳 → 林查班</b></span>
+          </div>
+        </div>
+
+        <div class="command-grid">
+          <section class="panel intake-panel">
+            <div class="panel-head">
+              <div><span class="step-number">01</span><h2>装载单证</h2></div>
+              <span class="hint">支持 TXT / CSV / PDF / 图片</span>
+            </div>
+            <label class="dropzone" id="dropzone">
+              <input type="file" id="fileInput" multiple accept=".txt,.csv,.pdf,.png,.jpg,.jpeg">
+              <span class="upload-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 14v5h14v-5"/></svg>
+              </span>
+              <strong>拖入订单相关单证</strong>
+              <span>系统将自动识别类型并建立字段关系</span>
+            </label>
+            <button class="primary-button" id="demoBtn">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              载入脱敏演示单证
+            </button>
+            <div class="document-list" id="documentList">
+              <div class="empty-state"><span>0</span><p>尚未装载单证<br><small>建议先体验演示数据</small></p></div>
+            </div>
+          </section>
+
+          <section class="panel decision-panel">
+            <div class="panel-head">
+              <div><span class="step-number">02</span><h2>风险决策</h2></div>
+              <span class="status-badge idle" id="analysisStatus">等待分析</span>
+            </div>
+            <div class="risk-hero">
+              <div class="risk-gauge" id="riskGauge" style="--score:0">
+                <div><strong id="riskScore">--</strong><span>综合风险</span></div>
+              </div>
+              <div class="risk-summary">
+                <span class="risk-label" id="riskLabel">尚无判断</span>
+                <h3 id="riskTitle">装载单证后生成履约建议</h3>
+                <p id="riskDescription">系统将交叉核验数量、金额、贸易术语、运输节点与单证一致性。</p>
+              </div>
+            </div>
+            <div class="metrics-row">
+              <article><span>单证完整度</span><strong id="metricCompleteness">0%</strong><i class="metric-bar"><em id="barCompleteness" style="width:0%"></em></i></article>
+              <article><span>字段一致率</span><strong id="metricConsistency">--</strong><i class="metric-bar"><em id="barConsistency" style="width:0%"></em></i></article>
+              <article><span>预计延误</span><strong id="metricDelay">--</strong><small>基于截单节点</small></article>
+            </div>
+            <div class="issue-section">
+              <div class="section-title"><h3>优先处置队列</h3><span id="issueCount">0 项异常</span></div>
+              <div class="issue-list" id="issueList">
+                <div class="issue-placeholder">风险引擎尚未运行</div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="panel engine-panel">
+            <div class="panel-head">
+              <div><span class="step-number">03</span><h2>AI协同链路</h2></div>
+            </div>
+            <div class="engine-flow" id="engineFlow">
+              <div class="engine-node" data-stage="ocr"><span class="node-icon">识</span><div><b>OCR字段提取</b><small>版面识别 · 表格还原</small></div><i></i></div>
+              <div class="flow-line"><em></em></div>
+              <div class="engine-node" data-stage="match"><span class="node-icon">核</span><div><b>跨单证核验</b><small>字段映射 · 差异定位</small></div><i></i></div>
+              <div class="flow-line"><em></em></div>
+              <div class="engine-node" data-stage="rag"><span class="node-icon">策</span><div><b>LLM + RAG决策</b><small>规则溯源 · 建议生成</small></div><i></i></div>
+              <div class="flow-line"><em></em></div>
+              <div class="engine-node" data-stage="guard"><span class="node-icon">盾</span><div><b>安全护栏</b><small>脱敏 · 注入检测 · 审计</small></div><i></i></div>
+            </div>
+            <div class="evidence-card">
+              <span>决策依据</span>
+              <p id="evidenceText">等待引擎返回可追溯依据</p>
+              <button id="evidenceBtn" disabled>查看规则链</button>
+            </div>
+            <div class="audit-strip"><span>最近审计</span><p id="latestAudit">暂无操作记录</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="matrixView">
+        <div class="page-intro"><div><p class="eyebrow">订单级风险画像</p><h1>风险矩阵</h1></div><span class="status-badge warning">动态评估</span></div>
+        <div class="matrix-layout">
+          <section class="panel matrix-card">
+            <div class="matrix-y-label">影响程度</div>
+            <div class="risk-matrix" aria-label="供应链风险矩阵">
+              <span class="axis-label high">高</span><span class="axis-label low">低</span>
+              <div class="matrix-cell m1"></div><div class="matrix-cell m2"></div><div class="matrix-cell m3"></div>
+              <div class="matrix-cell m2"></div><div class="matrix-cell m3"></div><div class="matrix-cell m4"></div>
+              <div class="matrix-cell m3"></div><div class="matrix-cell m4"></div><div class="matrix-cell m5"></div>
+              <button class="risk-point p1" title="装箱数量短缺">数量差异</button>
+              <button class="risk-point p2" title="贸易术语冲突">条款冲突</button>
+              <button class="risk-point p3" title="总金额不一致">金额差异</button>
+            </div>
+            <div class="matrix-x-label">发生概率 <span>低</span><span>高</span></div>
+          </section>
+          <section class="panel portfolio-card">
+            <div class="panel-head"><div><h2>风险组合</h2></div><span>当前订单</span></div>
+            <div class="portfolio-list">
+              <article><i class="critical"></i><div><b>履约与交付</b><span>数量、装运截止日</span></div><strong>38%</strong></article>
+              <article><i class="high"></i><div><b>单证与合规</b><span>贸易术语、字段一致性</span></div><strong>34%</strong></article>
+              <article><i class="medium"></i><div><b>成本与结算</b><span>金额、币种、费用边界</span></div><strong>20%</strong></article>
+              <article><i class="low"></i><div><b>数据与系统</b><span>访问、留存、模型调用</span></div><strong>8%</strong></article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="securityView">
+        <div class="page-intro"><div><p class="eyebrow">数据 · 模型 · 应用</p><h1>安全中心</h1></div><span class="live-pill"><i></i> 防护已启用</span></div>
+        <div class="security-grid">
+          <section class="security-card"><span class="shield-icon">数</span><h2>数据安全</h2><p>敏感字段脱敏、会话级缓存、导出水印与最小化留存。</p><ul><li><b>已启用</b> 客户名称掩码</li><li><b>30分钟</b> 临时文件自动清理</li><li><b>AES-256</b> 静态数据加密策略</li></ul></section>
+          <section class="security-card"><span class="shield-icon">模</span><h2>模型安全</h2><p>提示注入检测、知识库证据约束与敏感输出过滤。</p><ul><li><b>严格</b> 系统提示隔离</li><li><b>可追溯</b> RAG规则引用</li><li><b>已启用</b> 输出内容审查</li></ul><button class="secondary-button" id="injectionTest">运行注入防护测试</button></section>
+          <section class="security-card"><span class="shield-icon">应</span><h2>应用安全</h2><p>基于角色的访问控制、接口限流与全链路日志审计。</p><ul><li><b>RBAC</b> 运营/审核/管理员</li><li><b>60次/分</b> 接口限流</li><li><b>完整</b> 操作审计留痕</li></ul><button class="secondary-button" id="accessTest">验证越权访问拦截</button></section>
+        </div>
+        <section class="panel audit-panel">
+          <div class="panel-head"><div><h2>安全审计记录</h2></div><span id="auditCount">3 条</span></div>
+          <div class="audit-table" id="auditTable">
+            <div class="table-row table-head"><span>时间</span><span>事件</span><span>主体</span><span>结果</span></div>
+            <div class="table-row"><span>09:21:08</span><span>会话建立与权限加载</span><span>运营审核员</span><span class="pass">通过</span></div>
+            <div class="table-row"><span>09:21:09</span><span>敏感字段脱敏策略加载</span><span>数据安全引擎</span><span class="pass">通过</span></div>
+            <div class="table-row"><span>09:21:10</span><span>模型调用安全策略检查</span><span>AI网关</span><span class="pass">通过</span></div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="evidenceModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <button class="modal-close" data-close-modal aria-label="关闭">×</button>
+      <p class="eyebrow">可解释决策链</p>
+      <h2 id="modalTitle">风险依据与处置逻辑</h2>
+      <div class="rule-chain">
+        <article><span>01</span><div><b>原始字段</b><p>PO数量 10,000；装箱单数量 9,800；差异 200件。</p></div></article>
+        <article><span>02</span><div><b>业务规则</b><p>订单、发票与装箱单的发运数量应保持一致；差异率超过1%需升级复核。</p></div></article>
+        <article><span>03</span><div><b>风险判断</b><p>当前短装率2%，可能造成客户拒收、补发成本及交期延误。</p></div></article>
+        <article><span>04</span><div><b>建议动作</b><p>冻结放单，要求仓库复核实装数量；确认后同步改单或补装。</p></div></article>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
