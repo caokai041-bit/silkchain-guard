@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="丝链智盾——面向中国—东盟跨境订单的AI单证审核与履约风险决策平台">
+  <meta name="description" content="丝链智盾——本地部署、纸电并行的跨境供应链单证归档、全链核验与风险决策平台">
   <meta name="theme-color" content="#07131f">
-  <title>丝链智盾 · 跨境供应链风险决策平台</title>
+  <title>丝链智盾 · 跨境单证智能中台</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307131f'/%3E%3Cpath d='M15 18h22l12 14-12 14H15l12-14z' fill='none' stroke='%2325d6c9' stroke-width='5' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23ffb547'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -18,11 +18,13 @@
       </a>
       <nav class="view-nav" aria-label="主要视图">
         <button class="nav-item active" data-view="workspace">运营工作台</button>
-        <button class="nav-item" data-view="matrix">风险矩阵</button>
+        <button class="nav-item" data-view="documents">单证中心</button>
+        <button class="nav-item" data-view="matrix">全链核验</button>
+        <button class="nav-item" data-view="value">价值测算</button>
         <button class="nav-item" data-view="security">安全中心</button>
       </nav>
       <div class="top-actions">
-        <span class="live-pill"><i></i> 引擎在线</span>
+        <span class="live-pill"><i></i> 本地节点在线</span>
         <button class="icon-button" id="exportBtn" aria-label="导出审核报告" title="导出审核报告">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg>
         </button>
@@ -34,13 +36,20 @@
       <section class="view active" id="workspaceView">
         <div class="page-intro">
           <div>
-            <p class="eyebrow">中国—东盟跨境订单 · 运营控制塔</p>
-            <h1>把单证异常，变成可执行的供应链决策</h1>
+            <p class="eyebrow">纸质 + 电子 · 中国—东盟跨境单证中台</p>
+            <h1>让每一份单证，都能找到、核对、追溯</h1>
           </div>
           <div class="intro-meta">
             <span>任务 <b id="taskId">SC-2026-0921</b></span>
             <span>航线 <b>深圳 → 林查班</b></span>
           </div>
+        </div>
+
+        <div class="promise-strip" aria-label="产品定位">
+          <span><b>本地部署</b> 数据留在企业内网</span>
+          <span><b>纸电并行</b> 不强迫一次性无纸化</span>
+          <span><b>标准统一</b> 贯通采、运、关、仓、结</span>
+          <span><b>跨境适配</b> 术语翻成运营人员听得懂的话</span>
         </div>
 
         <div class="command-grid">
@@ -92,6 +101,15 @@
                 <div class="issue-placeholder">风险引擎尚未运行</div>
               </div>
             </div>
+            <div class="deepseek-card" id="deepseekCard">
+              <div class="deepseek-head">
+                <div><span class="deepseek-mark">AI</span><div><b>本地模型运营建议</b><small id="deepseekStatus">兼容 DeepSeek · 等待风险核验</small></div></div>
+                <button id="deepseekBtn" disabled>生成建议</button>
+              </div>
+              <p id="deepseekSummary">完成核验后，可由本地部署的 DeepSeek 或企业模型生成处置优先级与协同建议。</p>
+              <ol id="deepseekActions" hidden></ol>
+              <small class="ai-notice">AI建议仅供辅助决策，关键操作须经授权人员复核。</small>
+            </div>
           </section>
 
           <aside class="panel engine-panel">
@@ -103,7 +121,7 @@
               <div class="flow-line"><em></em></div>
               <div class="engine-node" data-stage="match"><span class="node-icon">核</span><div><b>跨单证核验</b><small>字段映射 · 差异定位</small></div><i></i></div>
               <div class="flow-line"><em></em></div>
-              <div class="engine-node" data-stage="rag"><span class="node-icon">策</span><div><b>LLM + RAG决策</b><small>规则溯源 · 建议生成</small></div><i></i></div>
+              <div class="engine-node" data-stage="rag"><span class="node-icon">策</span><div><b>本地模型 + 规则库</b><small>术语翻译 · 建议生成</small></div><i></i></div>
               <div class="flow-line"><em></em></div>
               <div class="engine-node" data-stage="guard"><span class="node-icon">盾</span><div><b>安全护栏</b><small>脱敏 · 注入检测 · 审计</small></div><i></i></div>
             </div>
@@ -117,8 +135,74 @@
         </div>
       </section>
 
+      <section class="view" id="documentsView">
+        <div class="page-intro">
+          <div><p class="eyebrow">企业资料库 · 一单一档</p><h1>纸质有凭据，电子能流转，两者必须对得上</h1></div>
+          <div class="intro-meta"><span>单证包编号<b id="packageNumber">CN-TH-2026-000872</b></span><span>保管状态<b>本地加密归档</b></span></div>
+        </div>
+        <div class="document-hub-grid">
+          <section class="panel folder-panel">
+            <div class="panel-head"><div><h2>单证包目录</h2></div><button class="small-action" id="newPackageBtn">新建编号</button></div>
+            <div class="folder-tree">
+              <button class="folder-root active"><span>包</span><b id="folderPackageNumber">CN-TH-2026-000872</b><small>12份资料</small></button>
+              <div class="folder-branch">
+                <button><span>01</span><div><b>交易与订单</b><small>采购订单、合同、发票</small></div><em>3</em></button>
+                <button><span>02</span><div><b>仓储与实物</b><small>入库单、拣货单、装箱单</small></div><em>3</em></button>
+                <button><span>03</span><div><b>运输与交付</b><small>订舱单、提单、签收证明</small></div><em>3</em></button>
+                <button><span>04</span><div><b>报关与结算</b><small>报关单、原产地证、付款水单</small></div><em>3</em></button>
+              </div>
+            </div>
+            <div class="memory-box"><span class="memory-icon">忆</span><div><b>相似案例回忆</b><p>找到 2026-07 的泰国订单：同样出现“装箱数量少于订单2%”，当时通过补装避免改单。</p></div><button id="memoryBtn">查看案例</button></div>
+          </section>
+
+          <section class="panel registry-panel">
+            <div class="panel-head"><div><h2>纸电资料登记簿</h2></div><span>目录自动生成 · 版本可追溯</span></div>
+            <div class="registry-table">
+              <div class="registry-row registry-head"><span>企业编号</span><span>单证</span><span>载体作用</span><span>核验环节</span><span>状态</span></div>
+              <div class="registry-row"><span>TRD-001</span><span><b>采购订单</b><small>电子原件</small></span><span>锁定需求、价格和交期</span><span>采购 → 财务</span><span class="ok">已核</span></div>
+              <div class="registry-row"><span>WHS-014</span><span><b>装箱单</b><small>纸质扫描 + 电子表</small></span><span>证明实际装了什么</span><span>仓库 → 运输</span><span class="warn">差异</span></div>
+              <div class="registry-row"><span>LOG-021</span><span><b>海运提单</b><small>纸质正本 / 电子副本</small></span><span>承运人收货与交付凭据</span><span>运输 → 收货</span><span class="ok">已核</span></div>
+              <div class="registry-row"><span>CUS-008</span><span><b>报关单</b><small>电子回执</small></span><span>向海关申报货物信息</span><span>报关 → 放行</span><span class="pending">待回执</span></div>
+              <div class="registry-row"><span>FIN-005</span><span><b>商业发票</b><small>电子原件</small></span><span>结算、计税与贸易证明</span><span>销售 → 财务</span><span class="warn">差异</span></div>
+            </div>
+            <div class="paper-digital-grid">
+              <article><span>纸</span><div><b>纸质单据不是落后</b><p>承担签章、交接、原件控制和部分地区的法律凭据作用；系统为其绑定扫描件、哈希与保管位置。</p></div></article>
+              <article><span>电</span><div><b>电子单据负责流转</b><p>用于快速检索、跨系统交换、字段复用与自动核验；每次修改保留版本和责任人。</p></div></article>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel adapter-panel">
+          <div class="panel-head"><div><h2>核心单证适配度</h2></div><span>识别不是终点，进入业务核验才算适配</span></div>
+          <div class="adapter-grid">
+            <article><b>采购订单</b><span>目标识别率 98%</span><i><em style="width:98%"></em></i><small>数量 · 单价 · 交期 · 贸易术语</small></article>
+            <article><b>商业发票</b><span>目标识别率 96%</span><i><em style="width:96%"></em></i><small>金额 · 币种 · 买卖双方 · 税费</small></article>
+            <article><b>装箱单</b><span>目标识别率 95%</span><i><em style="width:95%"></em></i><small>箱数 · 毛净重 · SKU · 实装数量</small></article>
+            <article><b>海运提单</b><span>目标识别率 93%</span><i><em style="width:93%"></em></i><small>船名航次 · 港口 · 件重尺 · 收发货人</small></article>
+            <article><b>报关单</b><span>目标识别率 92%</span><i><em style="width:92%"></em></i><small>HS编码 · 申报要素 · 监管方式</small></article>
+            <article><b>原产地证</b><span>目标识别率 90%</span><i><em style="width:90%"></em></i><small>原产标准 · 签章 · 商品描述</small></article>
+          </div>
+          <p class="metric-disclaimer">以上为项目目标值，须使用脱敏真实样本测试集验证后才能作为正式准确率。</p>
+        </section>
+      </section>
+
       <section class="view" id="matrixView">
-        <div class="page-intro"><div><p class="eyebrow">订单级风险画像</p><h1>风险矩阵</h1></div><span class="status-badge warning">动态评估</span></div>
+        <div class="page-intro"><div><p class="eyebrow">采 · 仓 · 运 · 关 · 收 · 结</p><h1>同一个字段，沿全流程只认一个事实</h1></div><span class="status-badge warning">纸、电、实物三方核对</span></div>
+        <div class="reconcile-strip">
+          <article><span>订单系统</span><b>10,000件</b><small>客户需求</small></article><i></i>
+          <article><span>仓库实物</span><b class="danger-text">9,800件</b><small>现场实装</small></article><i></i>
+          <article><span>运输提单</span><b class="danger-text">9,800件</b><small>承运人接收</small></article><i></i>
+          <article><span>目的地签收</span><b>待回传</b><small>境外交付</small></article>
+          <div class="reconcile-result"><strong>-200件</strong><span>系统与实物不一致 · 短装率2%</span><button id="freezeBtn">冻结放单</button></div>
+        </div>
+        <div class="journey-track">
+          <article class="complete"><span>1</span><div><b>采购下单</b><small>订单版本、价格、交期</small></div></article>
+          <article class="alert"><span>2</span><div><b>仓库装箱</b><small>实装少200件</small></div></article>
+          <article class="alert"><span>3</span><div><b>承运接货</b><small>提单继承9,800件</small></div></article>
+          <article><span>4</span><div><b>报关放行</b><small>核对申报数量</small></div></article>
+          <article><span>5</span><div><b>境外交付</b><small>签收与索赔证据</small></div></article>
+          <article><span>6</span><div><b>财务结算</b><small>发票与付款闭环</small></div></article>
+        </div>
         <div class="matrix-layout">
           <section class="panel matrix-card">
             <div class="matrix-y-label">影响程度</div>
@@ -143,13 +227,57 @@
             </div>
           </section>
         </div>
+        <section class="panel plain-language-panel">
+          <div class="panel-head"><div><h2>把专业术语翻成运营人员听得懂的话</h2></div><span>跨境团队统一口径</span></div>
+          <div class="term-grid">
+            <article><b>FOB</b><p>卖方负责把货送上约定船舶；装船之后的主要运输风险通常转给买方。</p><small>风险例：发票写CIF、订单写FOB，会造成运费和保险费由谁承担不清。</small></article>
+            <article><b>提单 B/L</b><p>承运人确认收到货物并约定交付的运输凭据，不只是“物流面单”。</p><small>风险例：提单数量跟装箱单不一致，目的港可能拒收或产生索赔。</small></article>
+            <article><b>HS编码</b><p>海关识别商品类别的国际编号，会影响税率、监管条件和申报要求。</p><small>风险例：编码错误可能导致补税、改单或通关延误。</small></article>
+            <article><b>三单一致</b><p>订单、发票、装箱单的关键字段相互一致，系统还会继续比对提单和实物。</p><small>风险例：系统显示1万件，现场只有9,800件，必须先查清再放行。</small></article>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="valueView">
+        <div class="page-intro"><div><p class="eyebrow">市场证据 · 企业账本</p><h1>把“效率提升”换算成企业真正能省的钱</h1></div><span class="status-badge warning">可调参数测算</span></div>
+        <div class="evidence-grid">
+          <article><strong>36</strong><span>类关键贸易单证</span><p>ICC数字标准倡议对端到端供应链中的36类关键贸易单证进行了统一分析。</p><a href="https://iccwbo.org/news-publications/news/icc-digital-standards-initiative-launches-complete-framework-for-supply-chain-digitalisation/" target="_blank" rel="noreferrer">ICC DSI · 2024</a></article>
+          <article><strong>240</strong><span>份平均交换副本</span><p>一笔跨境交易平均涉及36份文件、240份副本，完全数字化比例仍不足1%。</p><a href="https://iccwbo.org/wp-content/uploads/sites/3/2022/06/icc-wto-dsi-toolkit-english.pdf" target="_blank" rel="noreferrer">ICC/WTO标准工具包</a></article>
+          <article><strong>24–44%</strong><span>潜在出口时间下降</span><p>联合国亚太经社会研究估算，跨境无纸化改革可使出口所需时间下降24%至44%。</p><a href="https://repository.unescap.org/items/2babe08b-976a-4fc4-b7a7-68bef9221695" target="_blank" rel="noreferrer">UN ESCAP研究</a></article>
+          <article><strong>17–31%</strong><span>潜在直接成本下降</span><p>同一研究估算直接成本可下降17%至31%；这是区域改革潜力，不等同于单家企业承诺。</p><a href="https://repository.unescap.org/items/2babe08b-976a-4fc4-b7a7-68bef9221695" target="_blank" rel="noreferrer">UN ESCAP研究</a></article>
+        </div>
+        <div class="value-layout">
+          <section class="panel calculator-panel">
+            <div class="panel-head"><div><h2>企业年度节省测算</h2></div><span>所有参数均可修改</span></div>
+            <div class="calculator-grid">
+              <label>每月单证包数量<input id="calcOrders" type="number" min="1" value="1200"><small>一笔订单对应一个单证包</small></label>
+              <label>人工审核分钟/包<input id="calcMinutes" type="number" min="1" value="18"><small>含查找、录入、核对、沟通</small></label>
+              <label>人员综合成本（元/小时）<input id="calcHourly" type="number" min="1" value="65"><small>工资、社保及管理成本</small></label>
+              <label>当前差错率（%）<input id="calcErrorRate" type="number" min="0" max="100" step="0.1" value="2.5"><small>错单、漏单、改单占比</small></label>
+              <label>单次差错平均损失（元）<input id="calcLoss" type="number" min="0" value="1800"><small>改单、延误、补发和沟通成本</small></label>
+              <label>预计自动化节时比例（%）<input id="calcSavingRate" type="number" min="0" max="100" value="65"><small>建议用试点实测后替换</small></label>
+            </div>
+          </section>
+          <section class="panel savings-panel">
+            <span class="saving-label">预计每年可节省</span>
+            <strong id="annualSaving">¥0</strong>
+            <p>其中人工节省 <b id="laborSaving">¥0</b>，提前拦截差错避免损失 <b id="errorSaving">¥0</b>。</p>
+            <div class="saving-bars"><span>人工审核成本<i><em id="laborBar"></em></i></span><span>差错损失<i><em id="errorBar"></em></i></span></div>
+            <div class="assumption-note"><b>测算边界</b><p>默认系统提前发现40%的差错；不计算融资、库存周转和客户满意度收益。结果用于试点预算，不构成收益保证。</p></div>
+          </section>
+        </div>
+        <section class="panel why-hybrid-panel">
+          <div><p class="eyebrow">为什么不强行“一夜无纸化”</p><h2>先统一事实，再逐步减少纸张</h2><p>跨境贸易的法律认可、银行要求、合作伙伴系统能力并不一致。企业需要的不是把纸扔掉，而是让纸质原件、扫描件和电子数据形成同一个可验证记录。</p></div>
+          <ol><li><span>01</span><b>纸质原件编号入库</b><small>记录箱柜位置、保管人和借阅轨迹</small></li><li><span>02</span><b>扫描生成电子孪生</b><small>OCR字段、文件哈希、版面影像绑定</small></li><li><span>03</span><b>统一字段跨系统复用</b><small>采购、WMS、TMS、报关、财务不再重复录入</small></li><li><span>04</span><b>具备条件后电子替代</b><small>按国家、单证和合作方逐项推进</small></li></ol>
+        </section>
       </section>
 
       <section class="view" id="securityView">
         <div class="page-intro"><div><p class="eyebrow">数据 · 模型 · 应用</p><h1>安全中心</h1></div><span class="live-pill"><i></i> 防护已启用</span></div>
         <div class="security-grid">
+          <section class="security-card"><span class="shield-icon">地</span><h2>本地化部署</h2><p>应用、企业资料库与模型网关部署在企业内网，不采用多租户SaaS。</p><ul><li><b>企业内网</b> 原始单证不出域</li><li><b>可选</b> 本地DeepSeek模型</li><li><b>可控</b> 外部接口按需关闭</li></ul></section>
           <section class="security-card"><span class="shield-icon">数</span><h2>数据安全</h2><p>敏感字段脱敏、会话级缓存、导出水印与最小化留存。</p><ul><li><b>已启用</b> 客户名称掩码</li><li><b>30分钟</b> 临时文件自动清理</li><li><b>AES-256</b> 静态数据加密策略</li></ul></section>
-          <section class="security-card"><span class="shield-icon">模</span><h2>模型安全</h2><p>提示注入检测、知识库证据约束与敏感输出过滤。</p><ul><li><b>严格</b> 系统提示隔离</li><li><b>可追溯</b> RAG规则引用</li><li><b>已启用</b> 输出内容审查</li></ul><button class="secondary-button" id="injectionTest">运行注入防护测试</button></section>
+          <section class="security-card"><span class="shield-icon">模</span><h2>模型安全</h2><p>提示注入检测、知识库证据约束与敏感输出过滤。</p><ul><li><b>严格</b> 系统提示隔离</li><li><b>可追溯</b> 业务规则引用</li><li><b>已启用</b> 输出内容审查</li></ul><button class="secondary-button" id="injectionTest">运行注入防护测试</button></section>
           <section class="security-card"><span class="shield-icon">应</span><h2>应用安全</h2><p>基于角色的访问控制、接口限流与全链路日志审计。</p><ul><li><b>RBAC</b> 运营/审核/管理员</li><li><b>60次/分</b> 接口限流</li><li><b>完整</b> 操作审计留痕</li></ul><button class="secondary-button" id="accessTest">验证越权访问拦截</button></section>
         </div>
         <section class="panel audit-panel">
@@ -181,6 +309,7 @@
   </div>
 
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  <script src="./config.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
