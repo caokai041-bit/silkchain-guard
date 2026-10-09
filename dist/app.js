@@ -5,6 +5,8 @@ const state = {
   analyzed: false
 };
 
+const deepseekEndpoint = String(window.SILKCHAIN_CONFIG?.deepseekEndpoint || '').trim();
+
 const demoDocuments = [
   { type: 'PO', name: '采购订单_PO-260918.txt', fields: { order: 'PO-260918', sku: 'SCG-480', quantity: 10000, amount: 180000, currency: 'USD', incoterm: 'FOB Shenzhen', port: 'Laem Chabang', deadline: '2026-09-26' } },
   { type: 'INV', name: '商业发票_INV-8821.txt', fields: { order: 'PO-260918', sku: 'SCG-480', quantity: 10000, amount: 185000, currency: 'USD', incoterm: 'CIF Laem Chabang', port: 'Laem Chabang', deadline: '2026-09-26' } },
@@ -27,7 +29,11 @@ const els = {
   issueCount: document.querySelector('#issueCount'),
   evidenceText: document.querySelector('#evidenceText'),
   evidenceBtn: document.querySelector('#evidenceBtn'),
-  latestAudit: document.querySelector('#latestAudit')
+  latestAudit: document.querySelector('#latestAudit'),
+  deepseekBtn: document.querySelector('#deepseekBtn'),
+  deepseekStatus: document.querySelector('#deepseekStatus'),
+  deepseekSummary: document.querySelector('#deepseekSummary'),
+  deepseekActions: document.querySelector('#deepseekActions')
 };
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -122,6 +128,11 @@ function resetDecision(title, description) {
   els.riskDescription.textContent = description;
   els.analysisStatus.className = 'status-badge idle';
   els.analysisStatus.textContent = '等待字段';
+  els.deepseekBtn.disabled = true;
+  els.deepseekStatus.textContent = '兼容 DeepSeek · 等待风险核验';
+  els.deepseekSummary.textContent = '完成核验后，可由本地部署的 DeepSeek 或企业模型生成处置优先级与协同建议。';
+  els.deepseekActions.hidden = true;
+  els.deepseekActions.replaceChildren();
 }
 
 function computeIssues() {
@@ -192,10 +203,64 @@ async function runAnalysis() {
     <article class="issue-item ${issue.level}" style="animation-delay:${i * 60}ms"><i></i><div><b>${issue.title}</b><small>${issue.detail}</small></div><button data-action="${issue.action}">${issue.action}</button></article>`).join('') || '<div class="issue-placeholder">未发现高优先级异常</div>';
   els.evidenceText.textContent = '已关联 4 份原始单证、3 条业务规则；每项结论均可回溯到字段与处置阈值。';
   els.evidenceBtn.disabled = false;
+  els.deepseekBtn.disabled = false;
+  els.deepseekStatus.textContent = deepseekEndpoint ? '企业模型网关 · 待调用' : '本地模型网关待配置';
   state.analyzed = true;
   els.demoBtn.disabled = false;
   addAudit('完成跨单证风险核验', 'AI决策引擎');
   toast('分析完成', `识别到 ${state.issues.length} 项异常，综合风险 ${score} 分。`);
+}
+
+async function requestDeepSeekAdvice() {
+  if (!state.analyzed) {
+    toast('请先完成风险核验', '载入单证并运行分析后才能生成运营建议。');
+    return;
+  }
+  if (!deepseekEndpoint) {
+    toast('本地模型网关尚未配置', '部署企业模型网关后，在 config.js 中填写内部接口地址。', 'blocked');
+    return;
+  }
+
+  els.deepseekBtn.disabled = true;
+  els.deepseekBtn.classList.add('loading');
+  els.deepseekBtn.textContent = '生成中…';
+  els.deepseekStatus.textContent = '正在进行脱敏推理';
+  try {
+    const response = await fetch(deepseekEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        taskId: document.querySelector('#taskId').textContent,
+        route: '深圳 → 林查班',
+        riskScore: Number(els.riskScore.textContent),
+        issues: state.issues.map(({ level, title, detail }) => ({ level, title, detail }))
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `接口返回 ${response.status}`);
+    const advice = payload.advice;
+    if (!advice || typeof advice.risk_summary !== 'string' || !Array.isArray(advice.actions)) throw new Error('模型返回格式不完整');
+
+    els.deepseekSummary.textContent = advice.risk_summary;
+    els.deepseekActions.replaceChildren(...advice.actions.slice(0, 5).map(action => {
+      const item = document.createElement('li');
+      item.textContent = String(action);
+      return item;
+    }));
+    els.deepseekActions.hidden = false;
+    els.deepseekStatus.textContent = `${payload.model || '本地模型'} · 已生成`;
+    els.evidenceText.textContent = advice.evidence_note || els.evidenceText.textContent;
+    addAudit('生成本地模型运营处置建议', 'AI安全网关');
+    toast('本地模型建议已生成', '结果已回填，并保留人工复核要求。');
+  } catch (error) {
+    els.deepseekStatus.textContent = '调用失败';
+    toast('本地模型调用失败', error.message || '请检查本地服务与模型状态。', 'blocked');
+    addAudit('本地模型调用失败', 'AI安全网关', '失败');
+  } finally {
+    els.deepseekBtn.disabled = false;
+    els.deepseekBtn.classList.remove('loading');
+    els.deepseekBtn.textContent = '重新生成';
+  }
 }
 
 els.demoBtn.addEventListener('click', loadDemoDocuments);
@@ -220,6 +285,11 @@ document.querySelectorAll('.nav-item').forEach(button => button.addEventListener
   document.querySelector(`#${button.dataset.view}View`).classList.add('active');
 }));
 
+const initialView = new URLSearchParams(window.location.search).get('view');
+if (['workspace', 'documents', 'matrix', 'value', 'security'].includes(initialView)) {
+  document.querySelector(`[data-view="${initialView}"]`)?.click();
+}
+
 els.issueList.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!button) return;
@@ -242,6 +312,55 @@ document.querySelector('#injectionTest').addEventListener('click', () => {
 document.querySelector('#accessTest').addEventListener('click', () => {
   toast('越权访问已拦截', '运营审核员无权读取管理员密钥配置，事件已记录。', 'blocked');
   addAudit('拦截越权访问：/admin/secrets', '应用安全网关', '已拦截');
+});
+
+els.deepseekBtn.addEventListener('click', requestDeepSeekAdvice);
+
+function updateSavingsCalculator() {
+  const number = id => Math.max(0, Number(document.querySelector(`#${id}`)?.value || 0));
+  const orders = number('calcOrders');
+  const minutes = number('calcMinutes');
+  const hourly = number('calcHourly');
+  const errorRate = Math.min(100, number('calcErrorRate')) / 100;
+  const loss = number('calcLoss');
+  const savingRate = Math.min(100, number('calcSavingRate')) / 100;
+  const annualLabor = orders * minutes / 60 * hourly * savingRate * 12;
+  const annualError = orders * errorRate * loss * 0.4 * 12;
+  const total = annualLabor + annualError;
+  const money = value => new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', maximumFractionDigits: 0 }).format(value);
+  const annualNode = document.querySelector('#annualSaving');
+  if (!annualNode) return;
+  annualNode.textContent = money(total);
+  document.querySelector('#laborSaving').textContent = money(annualLabor);
+  document.querySelector('#errorSaving').textContent = money(annualError);
+  const max = Math.max(annualLabor, annualError, 1);
+  document.querySelector('#laborBar').style.width = `${annualLabor / max * 100}%`;
+  document.querySelector('#errorBar').style.width = `${annualError / max * 100}%`;
+}
+
+document.querySelectorAll('.calculator-grid input').forEach(input => input.addEventListener('input', updateSavingsCalculator));
+updateSavingsCalculator();
+
+document.querySelector('#newPackageBtn')?.addEventListener('click', () => {
+  const serial = String(Date.now()).slice(-6);
+  const value = `CN-TH-2026-${serial}`;
+  document.querySelector('#packageNumber').textContent = value;
+  document.querySelector('#folderPackageNumber').textContent = value;
+  addAudit(`创建单证包 ${value}`, '资料管理引擎');
+  toast('单证包已创建', `${value} · 已生成四级目录与编号规则。`);
+});
+
+document.querySelector('#memoryBtn')?.addEventListener('click', () => {
+  document.querySelector('[data-view="matrix"]').click();
+  toast('已调取相似案例', '系统展示了历史短装2%的处置路径与证据链。');
+  addAudit('调取相似异常处置案例', '企业案例库');
+});
+
+document.querySelector('#freezeBtn')?.addEventListener('click', event => {
+  event.currentTarget.textContent = '已冻结';
+  event.currentTarget.disabled = true;
+  addAudit('冻结放单：实物与系统数量不一致');
+  toast('放单已冻结', '已通知仓库复点、运输复核与业务改单负责人。', 'blocked');
 });
 
 document.querySelector('#exportBtn').addEventListener('click', () => {
