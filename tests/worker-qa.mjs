@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const buildDir = path.resolve('tmp/worker-dist');
+const buildDir = path.resolve(process.env.WORKER_BUILD_DIR || 'dist');
 const worker = (await import(pathToFileURL(path.join(buildDir, 'server', 'index.js')).href + `?v=${Date.now()}`)).default;
 const run = (pathname, init = {}, env = {}) => worker.fetch(new Request(`https://example.test${pathname}`, init), env, {});
 
