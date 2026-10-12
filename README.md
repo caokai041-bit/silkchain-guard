@@ -45,6 +45,8 @@
 
 默认模型接口为 `http://127.0.0.1:11434/v1/chat/completions`，默认模型名为 `deepseek-r1:7b`。可通过 `MODEL_BASE_URL`、`MODEL_NAME`、`MODEL_API_KEY`、`HOST` 和 `PORT` 环境变量调整。详细说明见 `dist/local-server/README.md`。
 
+公开 Sites 版本通过服务端 `/api/analyze` 代理访问 DeepSeek，浏览器端不保存密钥。托管环境变量使用 `DEEPSEEK_API_KEY`、`DEEPSEEK_BASE_URL` 和 `DEEPSEEK_MODEL`；默认模型为 `deepseek-flash`。服务端执行同源检查、结构化输入白名单、每 IP 每分钟 6 次的尽力限流及 25 秒超时，并且所有结论仍需人工复核。
+
 任何密钥都只应保存在本地服务环境变量中，不得写入网页、GitHub 仓库或 `dist/config.js`。
 
 ## 比赛版验证计划

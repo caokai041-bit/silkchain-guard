@@ -207,7 +207,7 @@ async function runAnalysis() {
   els.evidenceText.textContent = '已关联 4 份原始单证、3 条业务规则；每项结论均可回溯到字段与处置阈值。';
   els.evidenceBtn.disabled = false;
   els.deepseekBtn.disabled = false;
-  els.deepseekStatus.textContent = deepseekEndpoint ? '企业模型网关 · 待调用' : '本地模型网关待配置';
+  els.deepseekStatus.textContent = deepseekEndpoint ? 'DeepSeek 安全网关 · 待调用' : 'DeepSeek 网关待配置';
   state.analyzed = true;
   els.demoBtn.disabled = false;
   addAudit('完成跨单证风险核验', 'AI决策引擎');
@@ -220,7 +220,7 @@ async function requestDeepSeekAdvice() {
     return;
   }
   if (!deepseekEndpoint) {
-    toast('本地模型网关尚未配置', '部署企业模型网关后，在 config.js 中填写内部接口地址。', 'blocked');
+    toast('DeepSeek 网关尚未配置', '请先配置服务端模型网关；不要把 API Key 写入网页。', 'blocked');
     return;
   }
 
@@ -251,14 +251,14 @@ async function requestDeepSeekAdvice() {
       return item;
     }));
     els.deepseekActions.hidden = false;
-    els.deepseekStatus.textContent = `${payload.model || '本地模型'} · 已生成`;
+    els.deepseekStatus.textContent = `${payload.model || 'DeepSeek'} · 已生成`;
     els.evidenceText.textContent = advice.evidence_note || els.evidenceText.textContent;
-    addAudit('生成本地模型运营处置建议', 'AI安全网关');
-    toast('本地模型建议已生成', '结果已回填，并保留人工复核要求。');
+    addAudit('生成 DeepSeek 运营处置建议', 'AI安全网关');
+    toast('DeepSeek 建议已生成', '结果已回填，并保留人工复核要求。');
   } catch (error) {
     els.deepseekStatus.textContent = '调用失败';
     toast('本地模型调用失败', error.message || '请检查本地服务与模型状态。', 'blocked');
-    addAudit('本地模型调用失败', 'AI安全网关', '失败');
+    addAudit('DeepSeek 调用失败', 'AI安全网关', '失败');
   } finally {
     els.deepseekBtn.disabled = false;
     els.deepseekBtn.classList.remove('loading');
