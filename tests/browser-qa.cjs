@@ -1,0 +1,42 @@
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const path = require('node:path');
+
+(async () => {
+  const baseUrl = process.env.QA_URL || 'http://127.0.0.1:8787';
+  const browser = await chromium.launch({ headless: true, executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' });
+  const errors = [];
+  const desktop = await browser.newContext({ viewport: { width: 1440, height: 1100 }, acceptDownloads: true });
+  const page = await desktop.newPage();
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  await page.goto(`${baseUrl}/?view=documents`, { waitUntil: 'networkidle' });
+  await page.locator('#archiveForm').scrollIntoViewIfNeeded();
+  assert.equal(await page.locator('.standard-basis a').count(), 5);
+  await page.locator('#archiveStage').selectOption('LOG');
+  await page.locator('#archiveType').selectOption('BL');
+  await page.locator('#archiveSequence').fill('42');
+  await page.locator('#archiveForm').dispatchEvent('submit');
+  assert.equal(await page.locator('#archiveNumberOutput').textContent(), 'A001-ZY·GJGYL·2026·D10-LOG-0042');
+  assert.match(await page.locator('#fileNameOutput').textContent(), /-LOG-BL-20261012-0042-V01-ZH\.pdf$/);
+  assert.equal(await page.locator('.archive-register-row').count(), 1);
+  const desktopOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  assert.ok(desktopOverflow <= 1, `desktop horizontal overflow ${desktopOverflow}px`);
+  await page.screenshot({ path: path.resolve('tmp/site-archive-desktop.png'), fullPage: true });
+  await page.locator('.archive-standard-panel').screenshot({ path: path.resolve('tmp/ppt/assets/archive-standards.png') });
+  await desktop.close();
+
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const phone = await mobile.newPage();
+  phone.on('pageerror', error => errors.push(error.message));
+  await phone.goto(`${baseUrl}/?view=documents`, { waitUntil: 'networkidle' });
+  await phone.locator('#archiveForm').scrollIntoViewIfNeeded();
+  const mobileOverflow = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  const offenders = await phone.evaluate(() => [...document.querySelectorAll('body *')].map(node => ({ tag: node.tagName, cls: node.className, id: node.id, right: node.getBoundingClientRect().right, width: node.getBoundingClientRect().width })).filter(item => item.right > innerWidth + 2).sort((a, b) => b.right - a.right).slice(0, 8));
+  assert.ok(mobileOverflow <= 1, `mobile horizontal overflow ${mobileOverflow}px: ${JSON.stringify(offenders)}`);
+  await phone.screenshot({ path: path.resolve('tmp/site-archive-mobile.png'), fullPage: true });
+  await mobile.close();
+  await browser.close();
+  assert.deepEqual(errors, [], `browser errors: ${errors.join(' | ')}`);
+  console.log('browser-qa: generator, persistence, desktop/mobile layout and console passed');
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -184,6 +184,42 @@
           </div>
           <p class="metric-disclaimer">以上为项目目标值，须使用脱敏真实样本测试集验证后才能作为正式准确率。</p>
         </section>
+
+        <section class="panel archive-standard-panel">
+          <div class="panel-head"><div><span class="step-number">标</span><h2>标准化归档工作台</h2></div><span>档号、电子文件名、纸质标签同源生成</span></div>
+          <div class="standard-basis" aria-label="归档标准依据">
+            <a href="https://www.saac.gov.cn/daj/hybz/202206/ef21b9abdb1a4f6e956156d3b43de0d4/files/e091a2289bc74a79acc086eb4ae39927.pdf" target="_blank" rel="noreferrer"><b>DA/T 13—2022</b><span>档号编制</span></a>
+            <a href="https://www.saac.gov.cn/daj/tzgg/201510/f05da3be1682414ba727cc4b7ba790fa.shtml" target="_blank" rel="noreferrer"><b>DA/T 22—2015</b><span>归档整理</span></a>
+            <a href="https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=EB1CC0500D91490B5D219823AC1F3D16" target="_blank" rel="noreferrer"><b>GB/T 18894—2016</b><span>电子归档</span></a>
+            <a href="https://www.saac.gov.cn/daj/tzgg/201709/17b7764728de403fb1c0f0085de6fa61.shtml" target="_blank" rel="noreferrer"><b>DA/T 31—2017</b><span>纸质数字化</span></a>
+            <a href="https://www.saac.gov.cn/daj/hybz/202206/c8e779ca63234607bb88186293a7ff95.shtml" target="_blank" rel="noreferrer"><b>DA/T 94—2022</b><span>电子会计档案</span></a>
+          </div>
+          <div class="archive-workbench">
+            <form class="archive-form" id="archiveForm">
+              <label>全宗号<input id="archiveFonds" value="A001" maxlength="8"></label>
+              <label>项目号<input id="archiveProject" value="BR2026" maxlength="16"></label>
+              <label>业务环节<select id="archiveStage"><option value="PROC">采购 PROC</option><option value="WHS">仓储 WHS</option><option value="LOG">运输 LOG</option><option value="CUS">报关 CUS</option><option value="DLV">交付 DLV</option><option value="FIN">结算 FIN</option></select></label>
+              <label>单证类型<select id="archiveType"><option value="PO">采购订单 PO</option><option value="CTR">合同 CTR</option><option value="CI">商业发票 CI</option><option value="PL">装箱单 PL</option><option value="BL">海运提单 BL</option><option value="COO">原产地证 COO</option><option value="CD">报关单 CD</option><option value="POD">签收证明 POD</option><option value="PAY">付款凭证 PAY</option></select></label>
+              <label>保管期限<select id="archiveRetention"><option value="D10">定期10年</option><option value="D30">定期30年</option><option value="Y">永久</option></select></label>
+              <label>流水号<input id="archiveSequence" type="number" min="1" max="9999" value="8"></label>
+              <label>形成日期<input id="archiveDate" type="date" value="2026-10-12"></label>
+              <label>版本 / 语种<span class="joined-input"><input id="archiveVersion" type="number" min="1" max="99" value="1"><select id="archiveLanguage"><option>ZH</option><option>EN</option><option>ZHEN</option><option>TH</option><option>MY</option><option>ID</option></select></span></label>
+              <button class="primary-button" id="generateArchiveBtn" type="submit">生成标准编号并登记</button>
+            </form>
+            <div class="archive-output" aria-live="polite">
+              <p><span>档号</span><code id="archiveNumberOutput">A001-ZY·GJGYL·2026·D10-PROC-0008</code></p>
+              <p><span>电子文件名</span><code id="fileNameOutput">SCG-BR2026-PROC-PO-20261012-0008-V01-ZH.pdf</code></p>
+              <p><span>纸质标签</span><pre id="paperLabelOutput"></pre></p>
+              <div class="archive-actions"><button id="copyArchiveBtn" type="button">复制档号</button><button id="exportArchiveBtn" type="button">导出归档清册 CSV</button></div>
+            </div>
+          </div>
+          <div class="paper-electronic-map">
+            <div><span>纸质原件</span><b>03柜 · 02盒 · 第008件</b><small>原件、签章、借阅轨迹、实体位置</small></div><i>同一档号<br>双向检索</i><div><span>电子档案</span><b>PDF/A · V01 · SHA-256</b><small>文件、元数据、版本、哈希与权限日志</small></div>
+          </div>
+          <div class="archive-register-head"><div><b>归档清册</b><span>演示数据保存在当前浏览器，可一键导出</span></div><button id="clearArchiveBtn" type="button">清空演示登记</button></div>
+          <div class="archive-register" id="archiveRegister"></div>
+          <p class="metric-disclaimer">系统按现行标准建立规则模板；企业正式启用时，应结合本单位分类方案、属地档案要求和实际保管期限表完成审批配置，不宣称未经认证的“标准合规认证”。</p>
+        </section>
       </section>
 
       <section class="view" id="matrixView">
@@ -310,6 +346,7 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
   <script src="./config.js"></script>
+  <script src="./archive-rules.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
