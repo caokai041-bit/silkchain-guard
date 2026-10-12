@@ -6,6 +6,9 @@ const state = {
 };
 
 const deepseekEndpoint = String(window.SILKCHAIN_CONFIG?.deepseekEndpoint || '').trim();
+const archiveRules = window.SilkArchiveRules;
+let archiveRecords = [];
+try { archiveRecords = JSON.parse(localStorage.getItem('silkchainArchiveRecords') || '[]'); } catch { archiveRecords = []; }
 
 const demoDocuments = [
   { type: 'PO', name: '采购订单_PO-260918.txt', fields: { order: 'PO-260918', sku: 'SCG-480', quantity: 10000, amount: 180000, currency: 'USD', incoterm: 'FOB Shenzhen', port: 'Laem Chabang', deadline: '2026-09-26' } },
@@ -341,11 +344,82 @@ function updateSavingsCalculator() {
 document.querySelectorAll('.calculator-grid input').forEach(input => input.addEventListener('input', updateSavingsCalculator));
 updateSavingsCalculator();
 
+function archiveInput() {
+  return {
+    enterprise: 'SCG', fonds: document.querySelector('#archiveFonds')?.value,
+    project: document.querySelector('#archiveProject')?.value, category: 'ZY', subcategory: 'GJGYL',
+    year: String(document.querySelector('#archiveDate')?.value || '').slice(0, 4),
+    retention: document.querySelector('#archiveRetention')?.value,
+    stage: document.querySelector('#archiveStage')?.value,
+    documentType: document.querySelector('#archiveType')?.value,
+    sequence: document.querySelector('#archiveSequence')?.value,
+    date: document.querySelector('#archiveDate')?.value,
+    version: document.querySelector('#archiveVersion')?.value,
+    language: document.querySelector('#archiveLanguage')?.value,
+    extension: 'pdf'
+  };
+}
+
+function renderArchivePreview(record) {
+  document.querySelector('#archiveNumberOutput').textContent = record.archiveNumber;
+  document.querySelector('#fileNameOutput').textContent = record.fileName;
+  document.querySelector('#paperLabelOutput').textContent = `${record.paperLabel}\n实体位置：03柜-02盒-第${record.sequence}件\n校验方式：SHA-256`;
+  return record;
+}
+
+function renderArchiveRegister() {
+  const node = document.querySelector('#archiveRegister');
+  if (!node) return;
+  if (!archiveRecords.length) {
+    node.innerHTML = '<div class="archive-register-empty">尚无登记记录，请生成一条标准编号。</div>';
+    return;
+  }
+  node.innerHTML = archiveRecords.slice().reverse().map(item => `<div class="archive-register-row"><code>${item.archiveNumber}</code><code>${item.fileName}</code><span>${item.documentTypeLabel} · ${item.stageLabel}</span><span>${item.retentionLabel}</span></div>`).join('');
+}
+
+function persistArchiveRecords() {
+  localStorage.setItem('silkchainArchiveRecords', JSON.stringify(archiveRecords.slice(-30)));
+  renderArchiveRegister();
+}
+
+if (archiveRules) {
+  renderArchivePreview(archiveRules.buildArchiveRecord(archiveInput()));
+  renderArchiveRegister();
+  document.querySelector('#archiveForm')?.addEventListener('input', () => renderArchivePreview(archiveRules.buildArchiveRecord(archiveInput())));
+  document.querySelector('#archiveForm')?.addEventListener('submit', event => {
+    event.preventDefault();
+    const record = renderArchivePreview(archiveRules.buildArchiveRecord(archiveInput()));
+    const duplicate = archiveRecords.some(item => item.archiveNumber === record.archiveNumber);
+    if (!duplicate) archiveRecords.push(record);
+    persistArchiveRecords();
+    addAudit(`${duplicate ? '复核' : '登记'}档案 ${record.archiveNumber}`, '资料管理引擎');
+    toast(duplicate ? '档号已存在' : '归档登记完成', `${record.archiveNumber} · 纸质标签和电子文件名已同步生成。`);
+  });
+  document.querySelector('#copyArchiveBtn')?.addEventListener('click', async () => {
+    const value = document.querySelector('#archiveNumberOutput').textContent;
+    try { await navigator.clipboard.writeText(value); toast('档号已复制', value); }
+    catch { toast('请手动复制档号', value); }
+  });
+  document.querySelector('#exportArchiveBtn')?.addEventListener('click', () => {
+    if (!archiveRecords.length) archiveRecords.push(archiveRules.buildArchiveRecord(archiveInput()));
+    const content = `\ufeff${archiveRules.csv(archiveRecords)}`;
+    const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = `丝链智盾-归档清册-${new Date().toISOString().slice(0, 10)}.csv`; link.click(); URL.revokeObjectURL(url);
+    addAudit(`导出归档清册 ${archiveRecords.length} 条`, '资料管理引擎');
+    toast('归档清册已导出', `共 ${archiveRecords.length} 条，包含档号、文件名、期限与版本。`);
+  });
+  document.querySelector('#clearArchiveBtn')?.addEventListener('click', () => {
+    archiveRecords = []; persistArchiveRecords(); toast('演示登记已清空', '标准规则和业务单证未受影响。');
+  });
+}
+
 document.querySelector('#newPackageBtn')?.addEventListener('click', () => {
   const serial = String(Date.now()).slice(-6);
   const value = `CN-TH-2026-${serial}`;
   document.querySelector('#packageNumber').textContent = value;
   document.querySelector('#folderPackageNumber').textContent = value;
+  const projectInput = document.querySelector('#archiveProject');
+  if (projectInput) { projectInput.value = value.replace(/[^A-Z0-9]/gi, '').slice(-16); projectInput.dispatchEvent(new Event('input', { bubbles: true })); }
   addAudit(`创建单证包 ${value}`, '资料管理引擎');
   toast('单证包已创建', `${value} · 已生成四级目录与编号规则。`);
 });
